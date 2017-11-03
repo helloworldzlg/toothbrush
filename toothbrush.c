@@ -1,3 +1,21 @@
+/********************************************************************************
+
+ **** Copyright (C), 2017, xx xx xx xx info&tech Co., Ltd.                ****
+
+ ********************************************************************************
+ * File Name     : toothbrush.h
+ * Author        : zhangligui
+ * Date          : 2017-10-28
+ * Description   : .C file function description
+ * Version       : 1.0
+ * Function List :
+ * 
+ * Record        :
+ * 1.Date        : 2017-10-28
+ *   Author      : zhangligui
+ *   Modification: Created file
+
+*************************************************************************************************************/
 #include "toothbrush.h"
 
 #define X_AXIS_THRESHOLD               (0)
@@ -25,7 +43,7 @@ int get_region(int gx, int gy, int gz)
 	return 0;
 }
 
-int calc_region(int gx, int gy, int gz, int roll, int pitch, int yaw)
+int calc_region(short gx, short gy, short gz, int roll, int pitch, int yaw)
 {
 	static int m_roll  = 0;
 	static int m_pitch = 0;

@@ -43,5 +43,8 @@ typedef enum
 	INIT_UPRIGHT     = 9,
 }TOOTH_BRUSH_STATUS_E;
 
+int calc_region(short gx, short gy, short gz, int roll, int pitch, int yaw);
+
+
 
 #endif
