@@ -78,8 +78,7 @@ void parse_protocol()
 				(m_pitch > 0x8000) ? (pitch = -(m_pitch - 0x8000)/10) : (pitch = m_pitch/10);
 				(m_yaw > 0x8000) ? (yaw = -(m_yaw - 0x8000)/10) : (yaw = m_yaw/10);
 				yaw = yaw - 180;
-				
-				printf("r = %d, p = %d, y = %d\n", roll, pitch, yaw);
+								
 				m_is_ready = 1;
 			}
 
@@ -88,8 +87,7 @@ void parse_protocol()
 				gx = ((pdata[i+4] << 8) | pdata[i+5]);
 				gy = ((pdata[i+6] << 8) | pdata[i+7]);
 				gz = ((pdata[i+8] << 8) | pdata[i+9]);
-
-				printf("gx = %d, gy = %d, gz = %d\n", gx, gy, gz);
+				
 				m_is_ready = 2;
 			}
 

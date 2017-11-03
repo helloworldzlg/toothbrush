@@ -49,6 +49,7 @@ int calc_region(short gx, short gy, short gz, int roll, int pitch, int yaw)
 	static int m_pitch = 0;
 	static int m_yaw   = 0;
 
-	
+	printf("gx = %d, gy = %d, gz = %d\n", gx, gy, gz);
+	printf("r = %d, p = %d, y = %d\n", roll, pitch, yaw);
 	return 0;
 }
