@@ -28,21 +28,20 @@ typedef enum
 
 typedef enum
 {
-	LEFT_EXTERNAL    = 0,
-	LEFT_INTERNAL    = 1,
-	LEFT_UPSIDE      = 2,
-	LEFT_DOWNSIDE    = 3,
-	RIGHT_EXTERNAL   = 4,
-	RIGHT_INTERNAL   = 5,
-	RIGHT_UPSIDE     = 6,
-	LRIGHT_DOWNSIDE  = 7,
-	TOOSH_REGION_NUM = 8,
+	INIT_UPRIGHT     = 0,
+	LEFT_EXTERNAL    = 1,
+	LEFT_INTERNAL    = 2,
+	LEFT_UPSIDE      = 3,
+	LEFT_DOWNSIDE    = 4,
+	RIGHT_EXTERNAL   = 5,
+	RIGHT_INTERNAL   = 6,
+	RIGHT_UPSIDE     = 7,
+	RIGHT_DOWNSIDE   = 8,
+	
+	TOOSH_REGION_NUM = 9,
 }TOOTH_BRUSH_REGION_E;
 
-typedef enum
-{
-	INIT_UPRIGHT     = 9,
-}TOOTH_BRUSH_STATUS_E;
+
 
 int calc_region(short gx, short gy, short gz, int roll, int pitch, int yaw);
 
