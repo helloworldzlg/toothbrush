@@ -110,7 +110,35 @@ int get_region(int gx, int gy, int gz)
 	return 0;
 }
 
-int calc_region(short gx, short gy, short gz, int roll, int pitch, int yaw)
+#define H_ORIENTATION_NUM              (6)
+static float h_orientation[H_ORIENTATION_NUM];
+static int h_orientation_count = 0;
+
+int get_h_orientation(float ay)
+{
+	int i, pn_count = 0;
+	h_orientation[h_orientation_count] = ay;
+	h_orientation_count = (h_orientation_count+1)%H_ORIENTATION_NUM;
+
+	for (i = 0; i < H_ORIENTATION_NUM; i++)
+		(h_orientation[i] > 0) ? (pn_count++) : (pn_count=pn_count);
+	if (pn_count >= H_ORIENTATION_NUM/2)
+		return BRUSH_RIGHT;
+	else
+		return BRUSH_LEFT;
+}
+int judge_region(float ax, float ay, float az, float roll, float pitch, float yaw)
+{
+	int h_orien = 0;
+
+	h_orien = get_h_orientation(ay);
+	printf("h_orien = %d\n", h_orien);
+
+	return 0;
+}
+
+#if 0
+int calc_region(float ax, float ay, float az, float roll, float pitch, float yaw)
 {
 	static int m_roll  = 0;
 	static int m_pitch = 0;
@@ -122,12 +150,12 @@ int calc_region(short gx, short gy, short gz, int roll, int pitch, int yaw)
 	static int l_external_yaw   = 0;
 	static int r_external_roll  = 0;
 	static int r_external_pitch = 0;
-	static int r_external_yaw   = 0;	
+	static int r_external_yaw   = 0;
 	TOOTH_BRUSH_REGION_E curr_region;
 	int m_dir = 0;
 
 	//printf("gx = %d, gy = %d, gz = %d\n", gx, gy, gz);
-	printf("r = %d, p = %d, y = %d\n", roll, pitch, yaw);
+	//printf("r = %d, p = %d, y = %d\n", roll, pitch, yaw);
 	//printf("curren_region = %d\n", last_region);
 	switch (last_region)
 	{
@@ -168,11 +196,11 @@ int calc_region(short gx, short gy, short gz, int roll, int pitch, int yaw)
 			break;
 
 		default:
-			printf("error\n");
+			//printf("error\n");
 			break;
 	}
 
-	if ((gx >= ACCE_P1G-1000) && (gx <= ACCE_P1G+1000) &&
+	if ((ax >= ACCE_P1G-1000) && (ax <= ACCE_P1G+1000) &&
 		(gy >= ACCE_0G-1000) && (gy <= ACCE_0G+1000) &&
 		(gz >= ACCE_0G-1000) && (gz <= ACCE_0G+1000))
 	{		
@@ -338,3 +366,4 @@ int calc_region(short gx, short gy, short gz, int roll, int pitch, int yaw)
 
 	return 0;
 }
+#endif

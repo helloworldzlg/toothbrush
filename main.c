@@ -30,20 +30,20 @@
 #define FALSE  -1
 #define TRUE   0
 
+#define TO_ANGLE(val)            ((val * 180.0f)/32768)
+#define TO_ACCELERATE(val)       ((val * 16.0f/32768))
+#define TO_ANGULAR(val)          ((val * 2000.0f/32768))
 
 unsigned char g_rxbuff[512];
 unsigned int g_rxcount = 0;
 
-int OpenDev(char *Dev)
+unsigned char get_sum_check(unsigned char* pbuff, int len)
 {
-    int fd = open( Dev, O_RDWR | O_NOCTTY | O_NDELAY);
-    if (-1 == fd)    
-    {             
-        perror("Can't Open Serial Port");
-        return -1;        
-    }    
-    else    
-        return fd;
+    int i;
+    unsigned char sum_check = 0;
+    for (i = 0; i < len; i++)
+        sum_check += pbuff[i];
+    return sum_check;
 }
 
 void parse_protocol()
@@ -52,93 +52,108 @@ void parse_protocol()
 	unsigned char *pdata = &g_rxbuff[0];
 
 	unsigned char frame_type;
-	signed short gx, gy, gz;
-	int roll, pitch, yaw;
-	unsigned short m_roll, m_pitch, m_yaw;
+    float ax = 0, ay = 0, az = 0, gx = 0, gy = 0, gz = 0, roll = 0, pitch = 0, yaw = 0;
+	short m_ax, m_ay, m_az, m_gx, m_gy, m_gz, m_roll, m_pitch, m_yaw;
 	static int m_is_ready = 0;
+    unsigned char sum_check = 0;
 
-	for (i = 0; i < g_rxcount; i++)
+	for (i = 0; i < g_rxcount-1; i++)
 	{
-		if ((0xA5 == pdata[i]) && (0x5A == pdata[i+1]) && (i < g_rxcount-18))
-		{
-			frame_type = pdata[i+3];
-//			for (j = 0; j < 12; j++)
-//			{
-//				printf("%x ", pdata[i+j]);
-//			}
-//			printf("\n");
-
-			if (0xA1 == frame_type)
-			{
-				m_roll  = ((pdata[i+4] << 8) | pdata[i+5]) & 0xFFFF;
-				m_pitch = ((pdata[i+6] << 8) | pdata[i+7]) & 0xFFFF;
-				m_yaw   = ((pdata[i+8] << 8) | pdata[i+9]) & 0xFFFF;
-
-				(m_roll > 0x8000) ? (roll = -(m_roll - 0x8000)/10) : (roll = m_roll/10);
-				(m_pitch > 0x8000) ? (pitch = -(m_pitch - 0x8000)/10) : (pitch = m_pitch/10);
-				(m_yaw > 0x8000) ? (yaw = -(m_yaw - 0x8000)/10) : (yaw = m_yaw/10);
-				yaw = yaw - 180;
-								
-				m_is_ready = 1;
-			}
-
-			if (0xA2 == frame_type)
-			{
-				gx = ((pdata[i+4] << 8) | pdata[i+5]);
-				gy = ((pdata[i+6] << 8) | pdata[i+7]);
-				gz = ((pdata[i+8] << 8) | pdata[i+9]);
-				
-				m_is_ready = 2;
-			}
-
-			if (2 == m_is_ready)
-			{
-				calc_region(gx, gy, gz, roll, pitch, yaw);
-
-				m_is_ready = 0;
-			}
-		}
+#if 1
+        if ((0x55 == pdata[i]) && (0x51 == pdata[i+1]))
+        {
+            if ((g_rxcount-i) >= 11)
+            {
+                sum_check = get_sum_check(&pdata[i], 10);
+                if (sum_check == pdata[i+10])
+                {
+                    m_ax = (short)((unsigned short)pdata[i+3] << 8)|pdata[i+2];
+                    m_ay = (short)((unsigned short)pdata[i+5] << 8)|pdata[i+4];
+                    m_az = (short)((unsigned short)pdata[i+7] << 8)|pdata[i+6];
+                    ax   = TO_ACCELERATE(m_ax);
+                    ay   = TO_ACCELERATE(m_ay);
+                    az   = TO_ACCELERATE(m_az);
+                    //printf("max = %d, may = %d, maz = %d\n", m_ax, m_ay, m_az);
+                    printf("ax = %f, ay = %f, az = %f\n", ax, ay, az);
+                    judge_region(ax, ay, az, roll, pitch, yaw);
+                }
+                return;
+            }
+        }
+#endif
+#if 0
+        if ((0x55 == pdata[i]) && (0x53 == pdata[i+1]))
+        {
+            if ((g_rxcount-i) >= 11)
+            {
+                sum_check = get_sum_check(&pdata[i], 10);
+                if (sum_check == pdata[i+10])
+                {
+                    m_roll  = (short)((unsigned short)pdata[i+3] << 8)|pdata[i+2];
+                    m_pitch = (short)((unsigned short)pdata[i+5] << 8)|pdata[i+4];
+                    m_yaw   = (short)((unsigned short)pdata[i+7] << 8)|pdata[i+6];
+                    //printf("mr = %d, mp = %d, my = %d\n", m_roll, m_pitch, m_yaw);
+                    roll  = TO_ANGLE(m_roll);
+                    pitch = TO_ANGLE(m_pitch);
+                    yaw   = TO_ANGLE(m_yaw);
+                    printf("r = %f, p = %f, y = %f\n", roll, pitch, yaw);
+                    //calc_region(ax, ay, az, roll, pitch, yaw);
+                }
+                return;
+            }
+        }
+#endif
 	}
 }
 
 int main(int argc, char **argv)
 {
-    int fd;
-    int nread;
-    char buff[256];
-    char *dev  = "/dev/ttyUSB0";
-    struct termios options;
-    
-    fd = OpenDev(dev);
+    int ret, fd, nread, i;
+    struct termios  oldtio, newtio;
+    unsigned char buff[128];
+
+    fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY);
+    if (fd < 0) 
+    {
+        printf("open /dev/ttyUSB0 error!!!");
+        return -1;
+    }
     printf("fd = %d\n", fd);
-	tcgetattr(fd, &options);
+    sleep(2);
 
-	cfsetispeed(&options, B115200);
-	cfsetospeed(&options, B115200);
-	options.c_cflag |= (CLOCAL | CREAD);
+    /* 获取当前操作模式参数 */
+    tcgetattr(fd, &oldtio);
+    memset(&newtio, 0, sizeof(newtio));
 
-	tcsetattr(fd, TCSANOW, &options);
+    /* 波特率=115200 数据位=8 使能数据接收 */
+    newtio.c_cflag = B115200 | CS8 | CLOCAL | CREAD;
+    newtio.c_iflag = IGNPAR;
+
+    tcflush(fd, TCIFLUSH);
+    tcsetattr(fd, TCSANOW, &newtio);
 	
 	//循环读取数据
 	while (1)
-	{   
-		while((nread = read(fd, buff, sizeof(buff))) > 0)
-		{ 
-			memcpy(&g_rxbuff[g_rxcount], buff, nread);
-			g_rxcount += nread;
+	{
+        nread = read(fd, buff, sizeof(buff));
+        if (nread > 0)
+        {  
+            memcpy(&g_rxbuff[g_rxcount], buff, nread);
+            g_rxcount += nread;
 
-			if (g_rxcount >= 64)
-			{
-				parse_protocol();
+            if (g_rxcount >= 22)
+            {
+                parse_protocol();
 
-				memset(g_rxbuff, 0, sizeof(g_rxbuff));
-				g_rxcount = 0;				
-			}
-		}
-		printf("nread = %d\n", nread);
+                memset(g_rxbuff, 0, sizeof(g_rxbuff));
+                g_rxcount = 0;
+            }
+        }
+        else
+            //printf("nread = %d\n", nread);
+        usleep(10000);
 	}
-#if 0
-    close(fd); 
-    exit (0);
-#endif
+
+    close(fd);
+    exit(0);
 }

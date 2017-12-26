@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include "toothbrush.h"
 
 #define BAUDRATE        B115200
@@ -145,7 +146,7 @@ void parse_protocol()
 		if ((0xA5 == pdata[i]) && (0x5A == pdata[i+1]) && (i < g_rxcount-18))
 		{
 			frame_type = pdata[i+3];
-			#if 0
+			#if 1
 			for (j = 0; j < 12; j++)
 			{
 				printf("%x ", pdata[i+j]);
@@ -184,7 +185,7 @@ void parse_protocol()
 
 			if (2 == m_is_ready)
 			{
-				calc_region(gx, gy, gz, roll, pitch, yaw);
+				//calc_region(gx, gy, gz, roll, pitch, yaw);
 
 				m_is_ready = 0;
 			}
@@ -194,7 +195,7 @@ void parse_protocol()
 
 int main(int argc, char *argv[])
 {
-	int nread;
+	int nread, i;
     int    fd, c=0, res;
 
     unsigned char  buf[256];
@@ -208,16 +209,28 @@ int main(int argc, char *argv[])
     }
 
     printf("Open...\n");
-    set_speed(fd,115200);
+    set_speed(fd,9600);
 	if (set_Parity(fd,8,1,'N') == FALSE)  {
 		printf("Set Parity Error\n");
 		exit (0);
 	}
 
     printf("Reading...\n");
-    while(1) 
+    while (1) 
     {
-		while((nread = read(fd, buf, sizeof(buf))) > 0)
+        nread = read(fd, buf, sizeof(buf));
+        if (nread > 0)
+        {
+            for (i = 0; i < nread; i++)
+            {
+                printf("%-2x   ", buf[i]);
+                //if (0xaa == buf[i])
+                //    printf("\n");
+            }
+            printf("\n");
+        }
+#if 0        
+		while(() > 0)
 		{ 
 			memcpy(&g_rxbuff[g_rxcount], buf, nread);
 			g_rxcount += nread;
@@ -229,7 +242,9 @@ int main(int argc, char *argv[])
 				memset(g_rxbuff, 0, sizeof(g_rxbuff));
 				g_rxcount = 0;				
 			}
+           
 		}
+#endif
     }
 
     printf("Close...\n");

@@ -43,7 +43,8 @@ typedef enum
 
 
 
-int calc_region(short gx, short gy, short gz, int roll, int pitch, int yaw);
+int calc_region(float gx, float gy, float gz, float roll, float pitch, float yaw);
+int judge_region(float ax, float ay, float az, float roll, float pitch, float yaw);
 
 
 
