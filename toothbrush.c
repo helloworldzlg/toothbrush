@@ -132,36 +132,48 @@ int get_h_orientation(float ay)
 
 int judge_region(float ax, float ay, float az, float roll, float pitch, float yaw)
 {
-	int h_orien = 0;
+	static int h_orien = 0;
 
-	h_orien = get_h_orientation(ay);
+	
 	//printf("h_orien = %d\n", h_orien);
 
 	if ((ax > 1-ACCRLERATE_RANGE) && (ax < 1+ACCRLERATE_RANGE))
 	{
 		printf("up right\n");
+		h_orien = get_h_orientation(ay);
 	}
 
 	if ((ay > -1-ACCRLERATE_RANGE) && (ay < -1+ACCRLERATE_RANGE))
 	{
-		printf("left outside | right inside\n");
+		if (h_orien == BRUSH_LEFT)
+			printf("left outside\n");
+		else
+			printf("right inside\n");
 	}
 
 	if ((az > 1-ACCRLERATE_RANGE) && (az < 1+ACCRLERATE_RANGE))
 	{
-		printf("left up side | right up side\n");
+		if (h_orien == BRUSH_LEFT)
+			printf("left up side\n");
+		else
+			printf("right up side\n");
 	}
 
 	if ((az > -1-ACCRLERATE_RANGE) && (az < -1+ACCRLERATE_RANGE))
 	{
-		printf("left down side | right down side\n");
+		if (h_orien == BRUSH_LEFT)
+			printf("left down side\n");
+		else
+			printf("right down side\n");
 	}
 
 	if ((ay > 1-ACCRLERATE_RANGE) && (ay < 1+ACCRLERATE_RANGE))
 	{
-		printf("right outside | left inside\n");
+		if (h_orien == BRUSH_LEFT)
+			printf("left inside\n");
+		else
+			printf("right outside\n");
 	}
-
 	return 0;
 }
 
