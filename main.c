@@ -106,8 +106,8 @@ void parse_protocol()
 
     if (2 == m_is_ready)
     {
-        //printf("ax = %f, ay = %f, az = %f, roll = %f, pitch = %f, yaw = %f\n",
-        //ax, ay, az, roll, pitch, yaw);
+        //printf("ax = %f, ay = %f, az = %f, roll = %f, pitch = %f, yaw = %f\n",\
+        ax, ay, az, roll, pitch, yaw);
         judge_region(ax, ay, az, roll, pitch, yaw);
         m_is_ready = 0;
     }

@@ -20,6 +20,10 @@
 #define __TOOTHBRUSH_H__
 #include <stdio.h>
 
+
+#define T_TRUE                    (1)
+#define T_FALSE                   (0)
+
 typedef enum
 {
 	BRUSH_LEFT  = 0,
@@ -28,17 +32,17 @@ typedef enum
 
 typedef enum
 {
-	INIT_UPRIGHT     = 0,
-	LEFT_EXTERNAL    = 1,
-	LEFT_INTERNAL    = 2,
-	LEFT_UPSIDE      = 3,
-	LEFT_DOWNSIDE    = 4,
-	RIGHT_EXTERNAL   = 5,
-	RIGHT_INTERNAL   = 6,
-	RIGHT_UPSIDE     = 7,
-	RIGHT_DOWNSIDE   = 8,
+	INIT_UPRIGHT    = 0,
+	LEFT_OUTSIDE    = 1,
+	LEFT_INSIDE     = 2,
+	LEFT_UPSIDE     = 3,
+	LEFT_DOWNSIDE   = 4,
+	RIGHT_OUTSIDE   = 5,
+	RIGHT_INSIDE    = 6,
+	RIGHT_UPSIDE    = 7,
+	RIGHT_DOWNSIDE  = 8,
 	
-	TOOSH_REGION_NUM = 9,
+	TOOTH_REGION_NUM = 9,
 }TOOTH_BRUSH_REGION_E;
 
 
