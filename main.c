@@ -52,7 +52,7 @@ void parse_protocol()
 	unsigned char *pdata = &g_rxbuff[0];
 
 	unsigned char frame_type;
-    float ax = 0, ay = 0, az = 0, gx = 0, gy = 0, gz = 0, roll = 0, pitch = 0, yaw = 0;
+    static float ax = 0, ay = 0, az = 0, gx = 0, gy = 0, gz = 0, roll = 0, pitch = 0, yaw = 0;
 	short m_ax, m_ay, m_az, m_gx, m_gy, m_gz, m_roll, m_pitch, m_yaw;
 	static int m_is_ready = 0;
     unsigned char sum_check = 0;
@@ -60,7 +60,7 @@ void parse_protocol()
 	for (i = 0; i < g_rxcount-1; i++)
 	{
 #if 1
-        if ((0x55 == pdata[i]) && (0x51 == pdata[i+1]))
+        if ((0 == m_is_ready) && (0x55 == pdata[i]) && (0x51 == pdata[i+1]))
         {
             if ((g_rxcount-i) >= 11)
             {
@@ -74,15 +74,15 @@ void parse_protocol()
                     ay   = TO_ACCELERATE(m_ay);
                     az   = TO_ACCELERATE(m_az);
                     //printf("max = %d, may = %d, maz = %d\n", m_ax, m_ay, m_az);
-                    printf("ax = %f, ay = %f, az = %f\n", ax, ay, az);
-                    judge_region(ax, ay, az, roll, pitch, yaw);
+                    //printf("ax = %f, ay = %f, az = %f\n", ax, ay, az);
+                    m_is_ready = 1;
+                    return;               
                 }
-                return;
             }
         }
 #endif
-#if 0
-        if ((0x55 == pdata[i]) && (0x53 == pdata[i+1]))
+#if 1
+        if ((1 == m_is_ready) && (0x55 == pdata[i]) && (0x53 == pdata[i+1]))
         {
             if ((g_rxcount-i) >= 11)
             {
@@ -92,18 +92,24 @@ void parse_protocol()
                     m_roll  = (short)((unsigned short)pdata[i+3] << 8)|pdata[i+2];
                     m_pitch = (short)((unsigned short)pdata[i+5] << 8)|pdata[i+4];
                     m_yaw   = (short)((unsigned short)pdata[i+7] << 8)|pdata[i+6];
-                    //printf("mr = %d, mp = %d, my = %d\n", m_roll, m_pitch, m_yaw);
                     roll  = TO_ANGLE(m_roll);
                     pitch = TO_ANGLE(m_pitch);
                     yaw   = TO_ANGLE(m_yaw);
-                    printf("r = %f, p = %f, y = %f\n", roll, pitch, yaw);
+                    //printf("r = %f, p = %f, y = %f\n", roll, pitch, yaw);
                     //calc_region(ax, ay, az, roll, pitch, yaw);
+                    m_is_ready = 2;
                 }
-                return;
             }
         }
 #endif
 	}
+
+    if (2 == m_is_ready)
+    {
+        printf("ax = %f, ay = %f, az = %f, roll = %f, pitch = %f, yaw = %f\n",
+        ax, ay, az, roll, pitch, yaw);
+        m_is_ready = 0;       
+    }
 }
 
 int main(int argc, char **argv)
