@@ -29,7 +29,19 @@
 #define ACCE_P2G                       (32768)
 #define ACCE_THRESHOLD                 (3000)
 
-int g_region_time_cnt[TOOTH_REGION_NUM];
+static bool g_calc_flag = false;
+static int g_region_time_cnt[TOOTH_REGION_NUM];
+
+void start_calc(void)
+{
+	memset(g_region_time_cnt, 0, sizeof(g_region_time_cnt));
+	g_calc_flag = true;
+}
+
+void stop_calc(void)
+{
+	g_calc_flag = false;
+}
 
 int get_region(int gx, int gy, int gz)
 {
@@ -220,7 +232,7 @@ int h_orien_is_change(float yaw)
 	}
 }
 
-int judge_region(float ax, float ay, float az, float roll, float pitch, float yaw)
+void judge_region(float ax, float ay, float az, float roll, float pitch, float yaw)
 {
 	int ret;
 	TOOTH_BRUSH_REGION_E brush_region;
@@ -229,7 +241,10 @@ int judge_region(float ax, float ay, float az, float roll, float pitch, float ya
 	
 	static TOOTH_BRUSH_REGION_E curr_region, last_region = TOOTH_REGION_NUM;
 
-	if ((ax > 1-ACCRLERATE_RANGE-0.5) && (ax < 1+ACCRLERATE_RANGE))
+	if (g_calc_flag == false)
+		return;
+
+	if ((ax > 1-ACCRLERATE_RANGE) && (ax < 1+ACCRLERATE_RANGE))
 	{		
 		curr_region = INIT_UPRIGHT;
 		h_orien = get_h_orientation(ay);
@@ -269,7 +284,7 @@ int judge_region(float ax, float ay, float az, float roll, float pitch, float ya
 
 	if ((curr_region != INIT_UPRIGHT) && (curr_region == last_region))
 	{
-		ret = h_orien_is_change(yaw);
+		//ret = h_orien_is_change(yaw);
 		//(ret == T_TRUE) ? (h_orien = (h_orien+1)%2) : (h_orien=h_orien);
 	}
 	// else
@@ -279,8 +294,9 @@ int judge_region(float ax, float ay, float az, float roll, float pitch, float ya
 
 	last_region = curr_region;
 
-	print_region(curr_region);
-	return 0;
+	//print_region(curr_region);
+	g_region_time_cnt[curr_region]++;
+	return;
 }
 
 #if 0
