@@ -9,20 +9,20 @@
  * Description   : .C file function description
  * Version       : 1.0
  * Function List :
- * 
+ *
  * Record        :
  * 1.Date        : 2017-10-28
  *   Author      : zhangligui
  *   Modification: Created file
 
 *************************************************************************************************************/
-#include <stdio.h>      
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>     
-#include <sys/types.h>  
-#include <sys/stat.h>   
-#include <fcntl.h>      
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <termios.h>
 #include <errno.h>
 #include "toothbrush.h"
@@ -52,36 +52,47 @@ void parse_protocol()
 	unsigned char *pdata = &g_rxbuff[0];
 
 	unsigned char frame_type;
-    static float ax = 0, ay = 0, az = 0, gx = 0, gy = 0, gz = 0, roll = 0, pitch = 0, yaw = 0;
-	short m_ax, m_ay, m_az, m_gx, m_gy, m_gz, m_roll, m_pitch, m_yaw;
+	static short data_buff[6] = {0};
 	static int m_is_ready = 0;
     unsigned char sum_check = 0;
 
 	for (i = 0; i < g_rxcount-1; i++)
 	{
 #if 1
-        if ((0 == m_is_ready) && (0x55 == pdata[i]) && (0x51 == pdata[i+1]))
+        if ((0 == m_is_ready) && (0x55 == pdata[i]) && (0x52 == pdata[i+1]))
         {
             if ((g_rxcount-i) >= 11)
             {
                 sum_check = get_sum_check(&pdata[i], 10);
                 if (sum_check == pdata[i+10])
                 {
-                    m_ax = (short)((unsigned short)pdata[i+3] << 8)|pdata[i+2];
-                    m_ay = (short)((unsigned short)pdata[i+5] << 8)|pdata[i+4];
-                    m_az = (short)((unsigned short)pdata[i+7] << 8)|pdata[i+6];
-                    ax   = TO_ACCELERATE(m_ax);
-                    ay   = TO_ACCELERATE(m_ay);
-                    az   = TO_ACCELERATE(m_az);
-                    //printf("max = %d, may = %d, maz = %d\n", m_ax, m_ay, m_az);
-                    //printf("ax = %f, ay = %f, az = %f\n", ax, ay, az);
+                    data_buff[0] = (short)((unsigned short)pdata[i+3] << 8)|pdata[i+2];
+                    data_buff[1] = (short)((unsigned short)pdata[i+5] << 8)|pdata[i+4];
+                    data_buff[2] = (short)((unsigned short)pdata[i+7] << 8)|pdata[i+6];
                     m_is_ready = 1;
-                    return;               
+                    return;
                 }
             }
         }
 #endif
 #if 1
+        if ((1 == m_is_ready) && (0x55 == pdata[i]) && (0x51 == pdata[i+1]))
+        {
+            if ((g_rxcount-i) >= 11)
+            {
+                sum_check = get_sum_check(&pdata[i], 10);
+                if (sum_check == pdata[i+10])
+                {
+                    data_buff[3] = (short)((unsigned short)pdata[i+3] << 8)|pdata[i+2];
+                    data_buff[4] = (short)((unsigned short)pdata[i+5] << 8)|pdata[i+4];
+                    data_buff[5] = (short)((unsigned short)pdata[i+7] << 8)|pdata[i+6];
+                    m_is_ready = 2;
+                    return;
+                }
+            }
+        }
+#endif
+#if 0
         if ((1 == m_is_ready) && (0x55 == pdata[i]) && (0x53 == pdata[i+1]))
         {
             if ((g_rxcount-i) >= 11)
@@ -89,12 +100,9 @@ void parse_protocol()
                 sum_check = get_sum_check(&pdata[i], 10);
                 if (sum_check == pdata[i+10])
                 {
-                    m_roll  = (short)((unsigned short)pdata[i+3] << 8)|pdata[i+2];
-                    m_pitch = (short)((unsigned short)pdata[i+5] << 8)|pdata[i+4];
-                    m_yaw   = (short)((unsigned short)pdata[i+7] << 8)|pdata[i+6];
-                    roll  = TO_ANGLE(m_roll);
-                    pitch = TO_ANGLE(m_pitch);
-                    yaw   = TO_ANGLE(m_yaw);
+                    roll  = (short)((unsigned short)pdata[i+3] << 8)|pdata[i+2];
+                    pitch = (short)((unsigned short)pdata[i+5] << 8)|pdata[i+4];
+                    yaw   = (short)((unsigned short)pdata[i+7] << 8)|pdata[i+6];
                     //printf("r = %f, p = %f, y = %f\n", roll, pitch, yaw);
                     //calc_region(ax, ay, az, roll, pitch, yaw);
                     m_is_ready = 2;
@@ -106,9 +114,7 @@ void parse_protocol()
 
     if (2 == m_is_ready)
     {
-        printf("ax = %f, ay = %f, az = %f, roll = %f, pitch = %f, yaw = %f\n",\
-        ax, ay, az, roll, pitch, yaw);
-        //judge_region(ax, ay, az, roll, pitch, yaw);
+        CalcEulerAngle((unsigned char*)data_buff, 12);
         m_is_ready = 0;
     }
 }
@@ -120,7 +126,7 @@ int main(int argc, char **argv)
     unsigned char buff[128];
 
     fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY);
-    if (fd < 0) 
+    if (fd < 0)
     {
         printf("open /dev/ttyUSB0 error!!!");
         return -1;
@@ -138,13 +144,15 @@ int main(int argc, char **argv)
 
     tcflush(fd, TCIFLUSH);
     tcsetattr(fd, TCSANOW, &newtio);
-	
+
+    StartSampleImu();
+
 	//循环读取数据
-	while (1)
+	for (i = 0; i < 12000; i++)
 	{
         nread = read(fd, buff, sizeof(buff));
         if (nread > 0)
-        {  
+        {
             memcpy(&g_rxbuff[g_rxcount], buff, nread);
             g_rxcount += nread;
 
@@ -160,6 +168,10 @@ int main(int argc, char **argv)
             //printf("nread = %d\n", nread);
         usleep(10000);
 	}
+
+    StopSmapleImu();
+
+    GetBrushScore();
 
     close(fd);
     exit(0);
