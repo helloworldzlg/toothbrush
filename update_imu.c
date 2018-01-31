@@ -177,9 +177,9 @@ void CalcEulerAngle(unsigned char *bmi160_data_buf, unsigned int buf_len)
 		ay = *(short*)&bmi160_data_buf[i*12+8];
 		az = *(short*)&bmi160_data_buf[i*12+10];
 
-        // printf("gx = %4d, gy = %4d, gz = %4d, ax = %4d, ay = %4d, az = %4d\n",\
-        // gx, gy, gz, ax, ay, az);
-		judge_region(gx, gy, gz, ax, ay, az);
+        printf("gx = %4d, gy = %4d, gz = %4d, ax = %4d, ay = %4d, az = %4d\n",\
+        gx, gy, gz, ax, ay, az);
+		//judge_region(gx, gy, gz, ax, ay, az);
 	}
 	return;
 }
