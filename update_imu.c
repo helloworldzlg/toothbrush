@@ -177,9 +177,9 @@ void CalcEulerAngle(unsigned char *bmi160_data_buf, unsigned int buf_len)
 		ay = *(short*)&bmi160_data_buf[i*12+8];
 		az = *(short*)&bmi160_data_buf[i*12+10];
 
-        printf("gx = %4d, gy = %4d, gz = %4d, ax = %4d, ay = %4d, az = %4d\n",\
+        //printf("gx = %4d, gy = %4d, gz = %4d, ax = %4d, ay = %4d, az = %4d\n",\
         gx, gy, gz, ax, ay, az);
-		//judge_region(gx, gy, gz, ax, ay, az);
+		judge_region(gx, gy, gz, ax, ay, az);
 	}
 	return;
 }
@@ -188,27 +188,60 @@ void CalcEulerAngle(unsigned char *bmi160_data_buf, unsigned int buf_len)
 int GetBrushScore(void)
 {
     int i;
+    int sum;
     int count = 0;
 
-    if ((g_region_time_count[LEFT_OUTSIDE] >= 2000) || (g_region_time_count[RIGHT_OUTSIDE] >= 2000))
-        g_brush_score += 5;
+    printf("socre = %d\n", g_brush_score);
+    if ((g_region_time_count[LEFT_OUTSIDE] >= LEFT_OUTSIDE_SCORE)
+    	|| (g_region_time_count[RIGHT_OUTSIDE] >= RIGHT_OUTSIDE_SCORE))
+    {
+    	sum = g_region_time_count[LEFT_OUTSIDE] + g_region_time_count[RIGHT_OUTSIDE];
+    	g_brush_score += (int)CALC_REGION_SCORE(sum, LEFT_OUTSIDE_SCORE);
+    }
     else
-        g_brush_score -= 5;
+    {
+    	sum = g_region_time_count[LEFT_OUTSIDE] + g_region_time_count[RIGHT_OUTSIDE];
+        g_brush_score -= (int)CALC_REGION_SCORE(sum, LEFT_OUTSIDE_SCORE);
+    }
 
-    if ((g_region_time_count[LEFT_DOWNSIDE] >= 1500) || (g_region_time_count[RIGHT_DOWNSIDE] >= 1500))
-        g_brush_score += 5;
+    printf("socre = %d\n", g_brush_score);
+    if ((g_region_time_count[LEFT_DOWNSIDE] >= LEFT_DOWNSIDE_SCORE) ||
+    	(g_region_time_count[RIGHT_DOWNSIDE] >= RIGHT_DOWNSIDE_SCORE))
+    {
+    	sum = g_region_time_count[LEFT_DOWNSIDE] + g_region_time_count[RIGHT_DOWNSIDE];
+    	g_brush_score += (int)CALC_REGION_SCORE(sum, LEFT_DOWNSIDE_SCORE);
+    }
     else
-        g_brush_score -= 5;
+    {
+    	sum = g_region_time_count[LEFT_DOWNSIDE] + g_region_time_count[RIGHT_DOWNSIDE];
+        g_brush_score -=  (int)CALC_REGION_SCORE(sum, LEFT_DOWNSIDE_SCORE);
+    }
 
-    if ((g_region_time_count[LEFT_INSIDE] >= 1000) || (g_region_time_count[RIGHT_INSIDE] >= 1000))
-        g_brush_score += 5;
+    printf("socre = %d\n", g_brush_score);
+    if ((g_region_time_count[LEFT_INSIDE] >= LEFT_INSIDE_SCORE) ||
+    	(g_region_time_count[RIGHT_INSIDE] >= RIGHT_INSIDE_SCORE))
+    {
+    	sum = g_region_time_count[LEFT_INSIDE] + g_region_time_count[RIGHT_INSIDE];
+        g_brush_score += (int)CALC_REGION_SCORE(sum, LEFT_INSIDE_SCORE);
+    }
     else
-        g_brush_score -= 5;
+    {
+    	sum = g_region_time_count[LEFT_INSIDE] + g_region_time_count[RIGHT_INSIDE];
+        g_brush_score -= (int)CALC_REGION_SCORE(sum, LEFT_INSIDE_SCORE);
+    }
 
-    if ((g_region_time_count[LEFT_UPSIDE] >= 1000) || (g_region_time_count[RIGHT_UPSIDE] >= 1000))
-        g_brush_score += 5;
+    printf("socre = %d\n", g_brush_score);
+    if ((g_region_time_count[LEFT_UPSIDE] >= LEFT_UPSIDE_SCORE) ||
+    	(g_region_time_count[RIGHT_UPSIDE] >= RIGHT_UPSIDE_SCORE))
+    {
+    	sum = g_region_time_count[LEFT_UPSIDE] + g_region_time_count[RIGHT_UPSIDE];
+    	g_brush_score += (int)CALC_REGION_SCORE(sum, LEFT_UPSIDE_SCORE);
+    }
     else
-        g_brush_score -= 5;
+    {
+    	sum = g_region_time_count[LEFT_UPSIDE] + g_region_time_count[RIGHT_UPSIDE];
+        g_brush_score -= (int)CALC_REGION_SCORE(sum, LEFT_UPSIDE_SCORE);
+    }
 
 	(g_brush_score > 100) ? (g_brush_score = 100) : (g_brush_score = g_brush_score);
 
@@ -219,7 +252,8 @@ int GetBrushScore(void)
 	    if (g_region_time_count[i] == 0)
 	        count++;
 	}
-    (count > 6) ? (g_brush_score = 0) : (g_brush_score = g_brush_score);
+    (count > 4) ? (g_brush_score = (8-count)*10) : (g_brush_score = g_brush_score);
 
+    printf("socre = %d\n", g_brush_score);
 	return g_brush_score;
 }

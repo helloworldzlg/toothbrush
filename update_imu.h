@@ -21,9 +21,21 @@ typedef enum
 	RIGHT_INSIDE    = 6,
 	RIGHT_UPSIDE    = 7,
 	RIGHT_DOWNSIDE  = 8,
-	
+
 	TOOTH_REGION_NUM = 9,
 }TOOTH_BRUSH_REGION_E;
+
+#define TEST_DEBUG                    (12.0f)
+#define LEFT_OUTSIDE_SCORE            (2000.0f/TEST_DEBUG)
+#define RIGHT_OUTSIDE_SCORE           (2000.0f/TEST_DEBUG)
+#define LEFT_INSIDE_SCORE             (1000.0f/TEST_DEBUG)
+#define RIGHT_INSIDE_SCORE            (1000.0f/TEST_DEBUG)
+#define LEFT_DOWNSIDE_SCORE           (1500.0f/TEST_DEBUG)
+#define RIGHT_DOWNSIDE_SCORE          (1500.0f/TEST_DEBUG)
+#define LEFT_UPSIDE_SCORE             (1000.0f/TEST_DEBUG)
+#define RIGHT_UPSIDE_SCORE            (1000.0f/TEST_DEBUG)
+
+#define CALC_REGION_SCORE(sum, max)      ((5.0f*sum)/max)
 
 void StartSampleImu(void);
 void StopSmapleImu(void);
