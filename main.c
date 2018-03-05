@@ -4,7 +4,7 @@
 
  ********************************************************************************
  * File Name     : main.c
- * Author        : zhangligui
+ * Author        : helloworldzlg
  * Date          : 2017-10-28
  * Description   : .C file function description
  * Version       : 1.0
@@ -12,7 +12,7 @@
  *
  * Record        :
  * 1.Date        : 2017-10-28
- *   Author      : zhangligui
+ *   Author      : helloworldzlg
  *   Modification: Created file
 
 *************************************************************************************************************/
@@ -25,7 +25,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <errno.h>
-#include "toothbrush.h"
+#include "update_imu.h"
 
 #define FALSE  -1
 #define TRUE   0
@@ -114,7 +114,7 @@ void parse_protocol()
 
     if (2 == m_is_ready)
     {
-        CalcEulerAngle((unsigned char*)data_buff, 12);
+        AnalysisBrushPose((unsigned char*)data_buff, 12);
         m_is_ready = 0;
     }
 }

@@ -42,7 +42,7 @@ typedef enum
 
 void StartSampleImu(void);
 void StopSmapleImu(void);
-void CalcEulerAngle(unsigned char *bmi160_data_buf, unsigned int buf_len);
+void AnalysisBrushPose(unsigned char *bmi160_data_buf, unsigned int buf_len);
 int GetBrushScore(void);
 int GetWarningAcceX();
 int GetWarningAcceY();
