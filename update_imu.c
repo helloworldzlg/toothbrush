@@ -8,15 +8,17 @@
 
 #define START_SMAPLE               (1)
 #define STOP_SMAPLE                (0)
-#define INIT_SCORE                 (80)
+#define INIT_SCORE                 (60.0f)
 #define SHORT_MAX                  (32768)
 #define ACCELERATE_MAX             (16)                //加速度计量程,单位g,即16g,需要根据实际配置修改
 #define ACCELERATE_1G              (SHORT_MAX/ACCELERATE_MAX)
 #define ACCELERATE_RANGE           (ACCELERATE_1G/4)   //测定的加速度计容忍的误差限制
 
 unsigned int g_sample_flag = STOP_SMAPLE;
-unsigned int g_brush_score = 0;
+float g_brush_score = 0.0f;
 unsigned int g_region_time_count[TOOTH_REGION_NUM];
+unsigned int g_warning_acce_x = 0;
+unsigned int g_warning_acce_y = 0;
 
 /* 启动姿态解算 */
 void StartSampleImu(void)
@@ -93,6 +95,49 @@ void print_region(TOOTH_BRUSH_REGION_E brush_region)
 	}
 }
 
+int GetWarningAcceX()
+{
+    return g_warning_acce_x;
+}
+
+int GetWarningAcceY()
+{
+    return g_warning_acce_y;
+}
+
+/*
+ * 实时更新x轴和y轴的加速度过大(频率快)告警
+ */
+void update_acce_warning(short ax, short ay)
+{
+    static int x_acce_count = 0;
+    static int y_acce_count = 0;
+
+    if ((ax > WARNING_ACCE_X) || (ax < -WARNING_ACCE_X))
+    {
+        x_acce_count += 2;
+    }
+
+    if ((ay > WARNGIN_ACCE_Y) || (ay < -WARNGIN_ACCE_Y))
+    {
+        y_acce_count += 2;
+    }
+
+    (x_acce_count > 0) ? (x_acce_count -= 1) : (x_acce_count = x_acce_count);
+    (y_acce_count > 0) ? (y_acce_count -= 1) : (y_acce_count = y_acce_count);
+
+    if (x_acce_count > 0)
+    {
+        g_warning_acce_x = 1;
+    }
+
+    if (y_acce_count > 0)
+    {
+        g_warning_acce_y = 1;
+    }
+    return;
+}
+
 void judge_region(short gx, short gy, short gz, short ax, short ay, short az)
 {
 	int ret;
@@ -101,6 +146,8 @@ void judge_region(short gx, short gy, short gz, short ax, short ay, short az)
 	static int h_orien = 0;
 
 	static TOOTH_BRUSH_REGION_E curr_region, last_region = TOOTH_REGION_NUM;
+
+    update_acce_warning(ax, ay);
 
 	if ((ax > ACCELERATE_1G-ACCELERATE_RANGE) && (ax < ACCELERATE_1G+ACCELERATE_RANGE))
 	{
@@ -152,7 +199,7 @@ void judge_region(short gx, short gy, short gz, short ax, short ay, short az)
 	}
 	last_region = curr_region;
 #endif
-	print_region(curr_region);
+	//print_region(curr_region);
 	g_region_time_count[curr_region]++;
 	return;
 }
@@ -177,8 +224,6 @@ void CalcEulerAngle(unsigned char *bmi160_data_buf, unsigned int buf_len)
 		ay = *(short*)&bmi160_data_buf[i*12+8];
 		az = *(short*)&bmi160_data_buf[i*12+10];
 
-        //printf("gx = %4d, gy = %4d, gz = %4d, ax = %4d, ay = %4d, az = %4d\n",\
-        gx, gy, gz, ax, ay, az);
 		judge_region(gx, gy, gz, ax, ay, az);
 	}
 	return;
@@ -188,72 +233,23 @@ void CalcEulerAngle(unsigned char *bmi160_data_buf, unsigned int buf_len)
 int GetBrushScore(void)
 {
     int i;
-    int sum;
-    int count = 0;
+    float standard_line[8] = {
+       LEFT_OUTSIDE_SCORE, LEFT_INSIDE_SCORE, LEFT_UPSIDE_SCORE, LEFT_DOWNSIDE_SCORE,
+       RIGHT_OUTSIDE_SCORE, RIGHT_INSIDE_SCORE, RIGHT_UPSIDE_SCORE, RIGHT_DOWNSIDE_SCORE,
+    };
+    float region_score;
 
-    printf("socre = %d\n", g_brush_score);
-    if ((g_region_time_count[LEFT_OUTSIDE] >= LEFT_OUTSIDE_SCORE)
-    	|| (g_region_time_count[RIGHT_OUTSIDE] >= RIGHT_OUTSIDE_SCORE))
+    for (i = 0; i < TOOTH_REGION_NUM-1; i++)
     {
-    	sum = g_region_time_count[LEFT_OUTSIDE] + g_region_time_count[RIGHT_OUTSIDE];
-    	g_brush_score += (int)CALC_REGION_SCORE(sum, LEFT_OUTSIDE_SCORE);
+        if (g_region_time_count[i+1] >= (int)standard_line[i])
+        {
+            region_score += 5.0;
+        }
+        else
+        {
+            region_score = (g_region_time_count[i+1] * 5.0f)/standard_line[i];
+        }
+        g_brush_score += region_score;
     }
-    else
-    {
-    	sum = g_region_time_count[LEFT_OUTSIDE] + g_region_time_count[RIGHT_OUTSIDE];
-        g_brush_score -= (int)CALC_REGION_SCORE(sum, LEFT_OUTSIDE_SCORE);
-    }
-
-    printf("socre = %d\n", g_brush_score);
-    if ((g_region_time_count[LEFT_DOWNSIDE] >= LEFT_DOWNSIDE_SCORE) ||
-    	(g_region_time_count[RIGHT_DOWNSIDE] >= RIGHT_DOWNSIDE_SCORE))
-    {
-    	sum = g_region_time_count[LEFT_DOWNSIDE] + g_region_time_count[RIGHT_DOWNSIDE];
-    	g_brush_score += (int)CALC_REGION_SCORE(sum, LEFT_DOWNSIDE_SCORE);
-    }
-    else
-    {
-    	sum = g_region_time_count[LEFT_DOWNSIDE] + g_region_time_count[RIGHT_DOWNSIDE];
-        g_brush_score -=  (int)CALC_REGION_SCORE(sum, LEFT_DOWNSIDE_SCORE);
-    }
-
-    printf("socre = %d\n", g_brush_score);
-    if ((g_region_time_count[LEFT_INSIDE] >= LEFT_INSIDE_SCORE) ||
-    	(g_region_time_count[RIGHT_INSIDE] >= RIGHT_INSIDE_SCORE))
-    {
-    	sum = g_region_time_count[LEFT_INSIDE] + g_region_time_count[RIGHT_INSIDE];
-        g_brush_score += (int)CALC_REGION_SCORE(sum, LEFT_INSIDE_SCORE);
-    }
-    else
-    {
-    	sum = g_region_time_count[LEFT_INSIDE] + g_region_time_count[RIGHT_INSIDE];
-        g_brush_score -= (int)CALC_REGION_SCORE(sum, LEFT_INSIDE_SCORE);
-    }
-
-    printf("socre = %d\n", g_brush_score);
-    if ((g_region_time_count[LEFT_UPSIDE] >= LEFT_UPSIDE_SCORE) ||
-    	(g_region_time_count[RIGHT_UPSIDE] >= RIGHT_UPSIDE_SCORE))
-    {
-    	sum = g_region_time_count[LEFT_UPSIDE] + g_region_time_count[RIGHT_UPSIDE];
-    	g_brush_score += (int)CALC_REGION_SCORE(sum, LEFT_UPSIDE_SCORE);
-    }
-    else
-    {
-    	sum = g_region_time_count[LEFT_UPSIDE] + g_region_time_count[RIGHT_UPSIDE];
-        g_brush_score -= (int)CALC_REGION_SCORE(sum, LEFT_UPSIDE_SCORE);
-    }
-
-	(g_brush_score > 100) ? (g_brush_score = 100) : (g_brush_score = g_brush_score);
-
-	//8个区域基本未覆盖,说明牙刷未运动
-	for (i = 0; i < 9; i++)
-	{
-	    printf("%d: %d\n", i, g_region_time_count[i]);
-	    if (g_region_time_count[i] == 0)
-	        count++;
-	}
-    (count > 4) ? (g_brush_score = (8-count)*10) : (g_brush_score = g_brush_score);
-
-    printf("socre = %d\n", g_brush_score);
-	return g_brush_score;
+	return (int)g_brush_score;
 }

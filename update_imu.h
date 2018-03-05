@@ -37,7 +37,12 @@ typedef enum
 
 #define CALC_REGION_SCORE(sum, max)      ((5.0f*sum)/max)
 
+#define WARNING_ACCE_X                (2000)
+#define WARNGIN_ACCE_Y                (5000)
+
 void StartSampleImu(void);
 void StopSmapleImu(void);
 void CalcEulerAngle(unsigned char *bmi160_data_buf, unsigned int buf_len);
 int GetBrushScore(void);
+int GetWarningAcceX();
+int GetWarningAcceY();

@@ -1,4 +1,4 @@
-main:main.o update_imu.o 
+main:main.o update_imu.o
 	gcc -o main main.o update_imu.o
 main.o:main.c
 	gcc -c main.c
