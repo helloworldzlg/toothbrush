@@ -124,6 +124,7 @@ int main(int argc, char **argv)
     int ret, fd, nread, i;
     struct termios  oldtio, newtio;
     unsigned char buff[128];
+
     int score = 0;
 
     fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY);

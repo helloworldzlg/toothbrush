@@ -91,6 +91,7 @@ int GetBrushScore(void)
        LEFT_OUTSIDE_SCORE, LEFT_INSIDE_SCORE, LEFT_UPSIDE_SCORE, LEFT_DOWNSIDE_SCORE,
        RIGHT_OUTSIDE_SCORE, RIGHT_INSIDE_SCORE, RIGHT_UPSIDE_SCORE, RIGHT_DOWNSIDE_SCORE,
     };
+
     float region_score = 0;
 
     for (i = 0; i < TOOTH_REGION_NUM-1; i++)
@@ -106,6 +107,7 @@ int GetBrushScore(void)
         g_brush_score += region_score;
         //printf("count: %d, standard_line: %f, region_score: %f\n", g_region_time_count[i+1], standard_line[i], region_score);
     }
+
     //printf("score = %f\n", g_brush_score);
 	return (int)g_brush_score;
 }

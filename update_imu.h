@@ -1,9 +1,15 @@
 /*
+<<<<<<< HEAD
  *  1. 调用StartSampleImu使能牙刷姿态解算
  *  2. 调用StopSmapleImu结束牙刷姿态解算
  *  3. 每10m调用AnalysisBrushPose解算姿态并分析刷牙区域
  *  4. 结束欧拉角解算后，调用GetBrushScore获取本次刷牙得分
  *  5. 实时获取是否刷牙频率过快告警, 1为告警, 0为无告警
+=======
+ *  1. 调用StartSampleImu使能欧拉角解算
+ *  2. 调用StopSmapleImu结束欧拉角解算
+ *  3. 结束欧拉角解算后，调用GetBrushScore获取本次刷牙得分
+>>>>>>> e94d842080bf1b694d40533d5885e46ef1094aa7
  */
 
 typedef enum
@@ -36,6 +42,7 @@ typedef enum
 #define RIGHT_DOWNSIDE_SCORE          (1500.0f/TEST_DEBUG)
 #define LEFT_UPSIDE_SCORE             (1000.0f/TEST_DEBUG)
 #define RIGHT_UPSIDE_SCORE            (1000.0f/TEST_DEBUG)
+
 
 /************************************* 需要配置的参数 *************************************/
 #define INIT_SCORE                    (60.0f)             //初始时的分值
