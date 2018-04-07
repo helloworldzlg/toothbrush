@@ -52,7 +52,7 @@ typedef enum
 
 /************************************* 可调节的参数 *************************************/
 #define ACCELERATE_RANGE              (ACCELERATE_1G/4)   //测定的加速度计容忍的误差限制
-#define WARNING_ACCE_X                (2000)              //x方向的加速度告警阈值
+#define WARNING_ACCE_X                (2200)              //x方向的加速度告警阈值
 #define WARNGIN_ACCE_Y                (5000)              //y方向的加速度告警阈值
 
 void StartSampleImu(void);

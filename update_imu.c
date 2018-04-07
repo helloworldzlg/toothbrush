@@ -105,10 +105,8 @@ int GetBrushScore(void)
             region_score = (g_region_time_count[i+1] * 5.0f)/standard_line[i];
         }
         g_brush_score += region_score;
-        //printf("count: %d, standard_line: %f, region_score: %f\n", g_region_time_count[i+1], standard_line[i], region_score);
     }
 
-    //printf("score = %f\n", g_brush_score);
 	return (int)g_brush_score;
 }
 
@@ -139,8 +137,8 @@ void update_acce_warning(short ax, short ay)
 {
     static int x_acce_count = 0;
     static int y_acce_count = 0;
-
-    if ((ax > WARNING_ACCE_X) || (ax < -WARNING_ACCE_X))
+    
+    if ( ((ax > WARNING_ACCE_X) || (ax < -WARNING_ACCE_X)) && ((ay < -500) || (ay > 500)) )
     {
         x_acce_count += 2;
     }
@@ -156,11 +154,13 @@ void update_acce_warning(short ax, short ay)
     if (x_acce_count > 0)
     {
         g_warning_acce_x = 1;
+        printf("x warngin!!!\n");
     }
 
     if (y_acce_count > 0)
     {
         g_warning_acce_y = 1;
+        printf("y warngin!!!\n");
     }
     return;
 }
@@ -182,7 +182,6 @@ void judge_region(short gx, short gy, short gz, short ax, short ay, short az)
     if ((ax > ACCELERATE_1G-ACCELERATE_RANGE) && (ax < ACCELERATE_1G+ACCELERATE_RANGE))
     {
         curr_region = INIT_UPRIGHT;
-        //h_orien = get_h_orientation(ay);
         (ay > 0) ? (h_orien = BRUSH_RIGHT)  : (h_orien = BRUSH_LEFT);
     }
 
